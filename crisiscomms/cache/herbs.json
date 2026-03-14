@@ -1,0 +1,137 @@
+[
+  {
+    "name": "Turmeric",
+    "localName": "Haldi",
+    "treats": ["wounds", "inflammation", "infection", "fever"],
+    "how": "Mix with water to make a thick paste. Apply directly to wound. For fever, mix half teaspoon in warm water and drink.",
+    "found": "Every Indian kitchen. Yellow powder or fresh root in markets.",
+    "warning": "Do not apply to deep puncture wounds. Stains skin yellow temporarily.",
+    "severity": "mild"
+  },
+  {
+    "name": "Neem",
+    "localName": "Veppilai",
+    "treats": ["fever", "bacterial infection", "skin rash", "malaria symptoms"],
+    "how": "Boil 10-15 neem leaves in 2 cups water for 10 minutes. Strain and drink warm for fever. Apply cooled liquid to skin rash.",
+    "found": "Roadside trees all over Andhra Pradesh. Distinctive smell, small oval leaves.",
+    "warning": "Very bitter. Small doses only — max 1 cup per day. Avoid during pregnancy.",
+    "severity": "mild"
+  },
+  {
+    "name": "Ginger",
+    "localName": "Allam",
+    "treats": ["nausea", "vomiting", "cold", "sore throat", "digestion", "dehydration nausea"],
+    "how": "Cut 5-6 slices of fresh ginger. Boil in 2 cups water for 10 minutes. Add a little salt. Drink slowly. Repeat every 4 hours.",
+    "found": "Every kitchen. Brown knobby root.",
+    "warning": "Avoid if person has stomach ulcer or is on blood thinners.",
+    "severity": "safe"
+  },
+  {
+    "name": "Tulsi",
+    "localName": "Holy Basil",
+    "treats": ["cough", "cold", "fever", "headache", "stress", "respiratory issues"],
+    "how": "Crush 10-15 fresh leaves. Boil in 1 cup water for 5 minutes. Add honey if available. Drink warm every 4-6 hours.",
+    "found": "Most Hindu homes have a tulsi plant in the courtyard. Small green aromatic leaves.",
+    "warning": "Generally very safe. Avoid very large amounts during pregnancy.",
+    "severity": "safe"
+  },
+  {
+    "name": "Aloe Vera",
+    "localName": "Kalabanda",
+    "treats": ["burns", "skin wounds", "rashes", "sunburn", "dehydration (minor)"],
+    "how": "Break a thick leaf. Scoop out the clear gel inside. Apply directly to burn or wound. Cover loosely. Reapply every few hours.",
+    "found": "Common in gardens and roadsides. Thick fleshy pointed green leaves.",
+    "warning": "Only use the clear gel — the yellow liquid near the skin is a laxative. Do not eat in large amounts.",
+    "severity": "safe"
+  },
+  {
+    "name": "Garlic",
+    "localName": "Vellulli",
+    "treats": ["bacterial infection", "wound infection", "cold", "chest congestion", "blood pressure"],
+    "how": "Crush 2-3 raw garlic cloves. Apply paste to infected wound for 20 minutes then rinse. For internal: swallow 2 crushed cloves with water like a pill.",
+    "found": "Every kitchen. White cloves with papery skin.",
+    "warning": "Can cause skin irritation if left too long. May thin blood — avoid before surgery.",
+    "severity": "mild"
+  },
+  {
+    "name": "Coconut Water",
+    "localName": "Kobbari Neeru",
+    "treats": ["dehydration", "electrolyte loss", "vomiting", "diarrhea recovery"],
+    "how": "Drink directly from young green coconut. If not available, mix 1L water + 6 teaspoons sugar + half teaspoon salt as emergency oral rehydration.",
+    "found": "Coconut trees everywhere in AP. Also sold at roadside stalls.",
+    "warning": "Avoid if person has kidney disease. Not a replacement for medical treatment in severe dehydration.",
+    "severity": "safe"
+  },
+  {
+    "name": "Honey",
+    "localName": "Thene",
+    "treats": ["wounds", "burns", "sore throat", "cough", "wound infection prevention"],
+    "how": "Apply raw honey directly to wound or burn as a dressing. Cover with clean cloth. Change every 12 hours. For cough: eat 1 teaspoon directly or mix in warm water.",
+    "found": "Shops and markets. Use raw/natural honey, not processed.",
+    "warning": "NEVER give honey to children under 1 year — risk of botulism. Do not use on deep wounds.",
+    "severity": "safe"
+  },
+  {
+    "name": "Mint",
+    "localName": "Pudina",
+    "treats": ["headache", "nausea", "fever cooling", "stomach pain", "dehydration (makes water palatable)"],
+    "how": "Crush fresh leaves, apply to forehead for headache. Boil in water and drink for nausea and stomach pain. Add to water to make it easier to drink during dehydration.",
+    "found": "Common garden plant. Found in most Indian homes. Strong distinct smell.",
+    "warning": "Generally very safe. Large amounts may cause heartburn.",
+    "severity": "safe"
+  },
+  {
+    "name": "Onion",
+    "localName": "Ulli",
+    "treats": ["insect stings", "minor burns", "congestion", "ear pain"],
+    "how": "Cut raw onion and rub on insect sting for immediate sting relief. Warm a slice and place on ear for ear pain. Inhale cut onion for nasal congestion.",
+    "found": "Every kitchen.",
+    "warning": "Skin irritant — do not leave on skin too long. May sting initially.",
+    "severity": "mild"
+  },
+  {
+    "name": "Tamarind",
+    "localName": "Chintapandu",
+    "treats": ["constipation", "digestion", "fever", "scurvy (vitamin C)"],
+    "how": "Soak tamarind pulp in water for 10 minutes. Squeeze out the liquid. Drink for digestive issues and mild fever cooling.",
+    "found": "Every kitchen and market. Dark brown sticky pulp.",
+    "warning": "High acidity — avoid in large amounts if stomach is sensitive. Avoid with certain medications.",
+    "severity": "mild"
+  },
+  {
+    "name": "Drumstick Leaves",
+    "localName": "Munagaku",
+    "treats": ["malnutrition", "weakness", "anemia", "vitamin deficiency"],
+    "how": "Cook like spinach or boil in water and drink as a nutritious broth. Extremely high in vitamins and protein. Give to weak or malnourished survivors daily.",
+    "found": "Drumstick trees common across Andhra Pradesh. Thin compound leaves.",
+    "warning": "Safe in food amounts. Avoid root bark — it can be toxic.",
+    "severity": "safe"
+  },
+  {
+    "name": "Lemon / Lime",
+    "localName": "Nimma",
+    "treats": ["dehydration", "scurvy", "nausea", "water purification (partial)", "wound cleaning"],
+    "how": "Mix juice of 1 lemon in 1L water with a pinch of salt and 2 teaspoons sugar — emergency ORS (Oral Rehydration Solution). Use juice to clean minor wounds.",
+    "found": "Every market and most kitchens.",
+    "warning": "Do not use on deep wounds — causes burning. Dilute for sensitive stomachs.",
+    "severity": "safe"
+  },
+  {
+    "name": "Fenugreek",
+    "localName": "Methi",
+    "treats": ["fever", "diabetes management", "inflammation", "digestive issues"],
+    "how": "Soak 1 teaspoon seeds overnight in water. Drink the water in the morning. For fever: boil seeds in water and drink like tea.",
+    "found": "Every kitchen spice box. Small yellow-brown seeds.",
+    "warning": "May lower blood sugar — caution in diabetics on medication. Avoid large amounts in pregnancy.",
+    "severity": "mild"
+  },
+  {
+    "name": "Coriander Seeds",
+    "localName": "Dhaniyalu",
+    "treats": ["fever", "UTI symptoms", "digestion", "inflammation"],
+    "how": "Boil 2 teaspoons seeds in 2 cups water for 10 minutes. Strain and drink throughout the day. Cooling effect on body — good for high fever.",
+    "found": "Every kitchen. Round small seeds.",
+    "warning": "Generally very safe. Large amounts may cause skin sensitivity to sunlight.",
+    "severity": "safe"
+  }
+]

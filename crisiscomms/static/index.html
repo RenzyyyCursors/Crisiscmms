@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>CrisisComms — Apocalypse Protocol</title>
+
+<!--
+  EXTERNAL LIBRARIES (loaded once while online, cached by browser after)
+  Leaflet = the map library (free, no API key needed)
+  Google Fonts = the typefaces
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+/* ============================================================
+   DESIGN SYSTEM — Dark apocalyptic terminal aesthetic
+   ============================================================ */
+:root {
+  --red:    #ff2a2a;
+  --orange: #ff6a00;
+  --yellow: #ffd000;
+  --green:  #00ff88;
+  --blue:   #00cfff;
+  --bg:     #0a0a0a;
+  --panel:  #111315;
+  --border: #222426;
+  --text:   #c8c8c8;
+  --dim:    #484848;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* CRT scanline overlay — purely visual, gives terminal feel */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none; z-index: 9998;
+}
+
+/* ---- HEADER ---- */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--red);
+  background: linear-gradient(90deg, rgba(255,42,42,0.07), transparent);
+  flex-shrink: 0;
+}
+.logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.4rem; letter-spacing: 0.08em; color: #fff; }
+.logo span { color: var(--red); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.clock { font-size: 0.75rem; color: var(--dim); }
+.online-badge {
+  font-size: 0.6rem; letter-spacing: 0.12em; padding: 3px 8px;
+  border: 1px solid; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+}
+.online-badge.online  { color: var(--green);  border-color: var(--green);  }
+.online-badge.offline { color: var(--red);    border-color: var(--red);    }
+
+/* ---- TICKER ---- */
+.ticker {
+  background: rgba(255,42,42,0.08); border-bottom: 1px solid rgba(255,42,42,0.25);
+  padding: 4px 0; overflow: hidden; white-space: nowrap; flex-shrink: 0;
+}
+.ticker-inner {
+  display: inline-block;
+  animation: ticker-scroll 25s linear infinite;
+  font-size: 0.62rem; color: var(--red); letter-spacing: 0.1em; padding-left: 100%;
+}
+@keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-100%)} }
+
+/* ---- STAT ROW ---- */
+.stat-row { display:flex; border-bottom: 1px solid var(--border); flex-shrink:0; }
+.stat-box { flex:1; padding: 8px 4px; text-align:center; border-right: 1px solid var(--border); }
+.stat-box:last-child { border-right: none; }
+.stat-num { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight:900; line-height:1; }
+.stat-lbl { font-size: 0.5rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ---- TABS ---- */
+.tabs { display:flex; border-bottom: 1px solid var(--border); flex-shrink:0; overflow-x: auto; }
+.tab {
+  padding: 9px 14px; font-size: 0.65rem; letter-spacing: 0.1em; cursor: pointer;
+  border-right: 1px solid var(--border); color: var(--dim); background: none;
+  font-family: 'Share Tech Mono', monospace; white-space: nowrap; transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--orange); border-bottom-color: var(--orange); background: rgba(255,106,0,0.05); }
+
+/* ---- MAIN CONTENT AREA ---- */
+.content { flex:1; overflow: hidden; position: relative; }
+.view { position: absolute; inset:0; overflow-y: auto; padding: 16px; display:none; }
+.view.active { display: block; }
+
+/* ---- SECTION LABEL ---- */
+.sec { font-size: 0.6rem; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
+
+/* ---- MAP ---- */
+#map-view { padding: 0; }
+#leaflet-map { width: 100%; height: calc(100% - 120px); }
+.map-controls {
+  padding: 10px 14px; border-top: 1px solid var(--border); background: var(--panel);
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+
+/* ---- ALERT FEED ---- */
+.alert-card {
+  border: 1px solid var(--border); padding: 11px 13px; margin-bottom: 8px;
+  background: var(--panel); display: flex; gap: 11px;
+  animation: slidein 0.25s ease;
+}
+@keyframes slidein { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+.alert-card.critical { border-color: rgba(255,42,42,0.5);  background: rgba(255,42,42,0.05); }
+.alert-card.warning  { border-color: rgba(255,208,0,0.35); background: rgba(255,208,0,0.04); }
+.alert-card.info     { border-color: rgba(0,207,255,0.3);  background: rgba(0,207,255,0.04); }
+.alert-card.safe     { border-color: rgba(0,255,136,0.3);  background: rgba(0,255,136,0.04); }
+.alert-icon { font-size: 1.2rem; flex-shrink:0; margin-top:1px; }
+.alert-body { flex:1; }
+.alert-meta { font-size: 0.58rem; color: var(--dim); margin-bottom: 3px; display:flex; gap:10px; flex-wrap:wrap; }
+.alert-zone { color: var(--orange); }
+.alert-msg  { font-size: 0.78rem; line-height: 1.45; }
+.alert-tag  {
+  display: inline-block; margin-top: 5px;
+  font-size: 0.52rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 1px 6px; border: 1px solid;
+}
+.alert-card.critical .alert-tag { color:var(--red);    border-color:var(--red);    }
+.alert-card.warning  .alert-tag { color:var(--yellow); border-color:var(--yellow); }
+.alert-card.info     .alert-tag { color:var(--blue);   border-color:var(--blue);   }
+.alert-card.safe     .alert-tag { color:var(--green);  border-color:var(--green);  }
+
+/* ---- FORM ---- */
+.broadcast-bar {
+  border-top: 1px solid var(--border); padding: 12px 14px;
+  background: rgba(255,106,0,0.03); flex-shrink:0;
+}
+.form-row  { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; align-items:flex-end; }
+.form-col  { display:flex; flex-direction:column; gap:4px; }
+.form-lbl  { font-size: 0.55rem; letter-spacing:0.15em; color:var(--dim); text-transform:uppercase; }
+select, input[type=text], textarea {
+  background: #0c0c0c; border: 1px solid var(--border); color: var(--text);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.72rem;
+  padding: 6px 9px; outline: none; transition: border-color 0.15s;
+}
+select:focus, input:focus, textarea:focus { border-color: var(--orange); }
+textarea { width:100%; resize:vertical; min-height:52px; }
+.btn {
+  padding: 7px 16px; font-family: 'Barlow Condensed', sans-serif; font-weight:700;
+  font-size: 0.82rem; letter-spacing:0.1em; text-transform:uppercase;
+  cursor:pointer; border:none; transition: all 0.15s;
+}
+.btn-red    { background: var(--red); color:#fff; }
+.btn-red:hover { background:#ff4444; box-shadow: 0 0 14px rgba(255,42,42,0.35); }
+.btn-ghost  { background:transparent; border:1px solid var(--border); color:var(--dim); }
+.btn-ghost:hover { border-color:var(--text); color:var(--text); }
+.btn-chaos  { background: rgba(255,106,0,0.15); border:1px solid var(--orange); color:var(--orange); }
+.btn-chaos:hover { background: rgba(255,106,0,0.25); }
+
+/* ---- RESOURCE BARS ---- */
+.res-card {
+  border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px;
+  background: var(--panel); display:flex; align-items:center; gap:12px;
+}
+.res-emoji { font-size:1.4rem; }
+.res-info  { flex:1; }
+.res-name  { font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--dim); }
+.res-pct   { font-family:'Barlow Condensed', sans-serif; font-size:1.6rem; font-weight:900; color:#fff; line-height:1; }
+.res-sub   { font-size: 0.58rem; color: var(--dim); }
+.bar-track { flex:1; height:6px; background:#1a1a1a; border:1px solid var(--border); }
+.bar-fill  { height:100%; transition: width 0.5s, background 0.5s; }
+.res-update { display:flex; gap:6px; align-items:center; margin-top:6px; }
+.res-update input[type=range] { flex:1; accent-color: var(--orange); }
+
+/* ---- SURVIVORS ---- */
+.survivor-card {
+  border:1px solid var(--border); padding:9px 12px; margin-bottom:6px;
+  background:var(--panel); display:flex; align-items:center; gap:10px;
+}
+.s-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.s-dot.safe { background:var(--green); box-shadow:0 0 6px var(--green); }
+.s-dot.need { background:var(--red); box-shadow:0 0 6px var(--red); animation:pulse 1s infinite; }
+.s-dot.has  { background:var(--blue); box-shadow:0 0 6px var(--blue); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.s-name { flex:1; font-size:0.75rem; }
+.s-zone { font-size:0.6rem; color:var(--dim); margin-right:6px; }
+.s-tag  { font-size:0.55rem; letter-spacing:0.12em; padding:2px 7px; border:1px solid; }
+.s-tag.safe { color:var(--green); border-color:var(--green); }
+.s-tag.need { color:var(--red);   border-color:var(--red);   }
+.s-tag.has  { color:var(--blue);  border-color:var(--blue);  }
+
+.checkin-box { border:1px solid var(--border); padding:14px; background:var(--panel); margin-bottom:12px; }
+.status-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.sbtn {
+  flex:1; padding:9px 6px; font-family:'Barlow Condensed', sans-serif;
+  font-size:0.8rem; font-weight:700; letter-spacing:0.08em; cursor:pointer;
+  background:transparent; border:1px solid; text-transform:uppercase; transition:all 0.15s;
+}
+.sbtn.safe { color:var(--green); border-color:var(--green); }
+.sbtn.safe:hover,.sbtn.safe.active { background:rgba(0,255,136,0.1); }
+.sbtn.need { color:var(--red);   border-color:var(--red); }
+.sbtn.need:hover,.sbtn.need.active { background:rgba(255,42,42,0.1); }
+.sbtn.has  { color:var(--blue);  border-color:var(--blue); }
+.sbtn.has:hover,.sbtn.has.active  { background:rgba(0,207,255,0.1); }
+
+/* ---- HERBS ---- */
+.herb-search { width:100%; margin-bottom:12px; padding:9px 12px; }
+.herb-card {
+  border:1px solid var(--border); padding:13px 14px; margin-bottom:8px;
+  background:var(--panel); cursor:pointer; transition:border-color 0.15s;
+}
+.herb-card:hover { border-color: var(--orange); }
+.herb-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.herb-name { font-family:'Barlow Condensed', sans-serif; font-size:1rem; font-weight:700; color:#fff; }
+.herb-local { font-size:0.62rem; color:var(--orange); letter-spacing:0.1em; }
+.herb-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+.herb-tag {
+  font-size:0.55rem; padding:1px 7px; border:1px solid rgba(0,207,255,0.3);
+  color:var(--blue); letter-spacing:0.08em;
+}
+.herb-detail { display:none; }
+.herb-card.open .herb-detail { display:block; }
+.herb-row { margin-top:6px; font-size:0.72rem; line-height:1.5; }
+.herb-row-lbl { color:var(--dim); font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; }
+.herb-warn { color:var(--yellow); font-size:0.68rem; margin-top:8px; padding:6px 10px; border:1px solid rgba(255,208,0,0.25); background:rgba(255,208,0,0.04); }
+.severity-safe   { color:var(--green); }
+.severity-mild   { color:var(--yellow); }
+.severity-caution{ color:var(--red); }
+
+/* ---- CHAOS BANNER ---- */
+.chaos-banner {
+  position:fixed; top:0; left:0; right:0; z-index:9999;
+  background:var(--red); color:#fff; text-align:center;
+  padding:12px; font-family:'Barlow Condensed', sans-serif;
+  font-size:1rem; font-weight:700; letter-spacing:0.15em;
+  display:none; cursor:pointer;
+}
+.chaos-banner.show { display:block; animation:shake 0.4s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-4px)}
+  40%,80%{transform:translateX(4px)}
+}
+
+/* ---- TOAST ---- */
+.toast {
+  position:fixed; bottom:16px; right:16px; z-index:9997;
+  background:var(--panel); border:1px solid var(--orange);
+  padding:9px 14px; font-size:0.72rem; color:var(--text);
+  max-width:260px; animation:slidein 0.25s ease;
+}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:#0a0a0a; }
+::-webkit-scrollbar-thumb { background:#2a2a2a; }
+
+/* ---- MAP PINS ---- */
+.leaflet-popup-content-wrapper {
+  background:var(--panel); border:1px solid var(--border); border-radius:0;
+  color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.72rem;
+}
+.leaflet-popup-tip { background:var(--panel); }
+</style>
+</head>
+<body>
+
+<!-- CHAOS EVENT BANNER — appears on top of everything -->
+<div class="chaos-banner" id="chaos-banner" onclick="this.classList.remove('show')">
+  ⚠ CLICK TO DISMISS ⚠
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">CRISIS<span>COMMS</span></div>
+  <div class="header-right">
+    <span class="clock" id="clock">--:--:--</span>
+    <span class="online-badge offline" id="online-badge">● OFFLINE</span>
+  </div>
+</header>
+
+<!-- TICKER — scrolling news bar -->
+<div class="ticker">
+  <span class="ticker-inner" id="ticker-text">
+    ⚠ GRID DOWN SINCE 14:32 &nbsp;•&nbsp; WATER RESERVES CRITICAL IN ZONE C4 &nbsp;•&nbsp; MEDICAL AID AT ZONE A1 &nbsp;•&nbsp; FOOD DROP AT D4 — 18:00 HRS &nbsp;•&nbsp; AVOID ZONE E5 — STRUCTURAL DAMAGE &nbsp;•&nbsp;
+  </span>
+</div>
+
+<!-- STAT ROW -->
+<div class="stat-row">
+  <div class="stat-box">
+    <div class="stat-num" id="stat-alerts" style="color:var(--red)">0</div>
+    <div class="stat-lbl">Alerts</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" id="stat-survivors" style="color:var(--green)">0</div>
+    <div class="stat-lbl">Survivors</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" id="stat-need" style="color:var(--yellow)">0</div>
+    <div class="stat-lbl">Need Help</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-num" id="stat-water" style="color:var(--blue)">--%</div>
+    <div class="stat-lbl">Water</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('alerts',this)">// ALERTS</button>
+  <button class="tab" onclick="switchTab('map',this)">// MAP</button>
+  <button class="tab" onclick="switchTab('resources',this)">// RESOURCES</button>
+  <button class="tab" onclick="switchTab('survivors',this)">// SURVIVORS</button>
+  <button class="tab" onclick="switchTab('herbs',this)">// HERBS</button>
+</div>
+
+<!-- CONTENT VIEWS -->
+<div class="content">
+
+  <!-- ALERTS TAB -->
+  <div class="view active" id="view-alerts">
+    <div class="sec">> LIVE ALERT FEED — REAL TIME FROM ALL SURVIVORS</div>
+    <div id="alert-feed"></div>
+  </div>
+
+  <!-- MAP TAB -->
+  <div class="view" id="view-map" style="padding:0">
+    <div id="leaflet-map"></div>
+    <div class="map-controls">
+      <span style="font-size:0.62rem;color:var(--dim)">MAP LOADED FROM LOCAL SERVER — NO INTERNET NEEDED</span>
+      <button class="btn btn-ghost" onclick="locateMe()" style="margin-left:auto">📍 MY LOCATION</button>
+    </div>
+  </div>
+
+  <!-- RESOURCES TAB -->
+  <div class="view" id="view-resources">
+    <div class="sec">> GLOBAL RESOURCE LEVELS — UPDATE WHEN YOU HAVE BETTER INFO</div>
+
+    <div class="res-card" id="res-water">
+      <div class="res-emoji">💧</div>
+      <div class="res-info">
+        <div class="res-name">Water Supply</div>
+        <div class="res-pct" id="water-pct">--%</div>
+        <div class="res-sub" id="water-sub">Loading...</div>
+        <div class="res-update">
+          <input type="range" min="0" max="100" value="50" id="water-slider" oninput="document.getElementById('water-slider-val').textContent=this.value+'%'"/>
+          <span id="water-slider-val" style="font-size:0.65rem;width:32px">50%</span>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('water', document.getElementById('water-slider').value)">SET</button>
+        </div>
+      </div>
+      <div class="bar-track" style="width:50px">
+        <div class="bar-fill" id="water-bar"></div>
+      </div>
+    </div>
+
+    <div class="res-card" id="res-food">
+      <div class="res-emoji">🍱</div>
+      <div class="res-info">
+        <div class="res-name">Food Supply</div>
+        <div class="res-pct" id="food-pct">--%</div>
+        <div class="res-sub" id="food-sub">Loading...</div>
+        <div class="res-update">
+          <input type="range" min="0" max="100" value="50" id="food-slider" oninput="document.getElementById('food-slider-val').textContent=this.value+'%'"/>
+          <span id="food-slider-val" style="font-size:0.65rem;width:32px">50%</span>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('food', document.getElementById('food-slider').value)">SET</button>
+        </div>
+      </div>
+      <div class="bar-track" style="width:50px">
+        <div class="bar-fill" id="food-bar"></div>
+      </div>
+    </div>
+
+    <div class="res-card" id="res-medical">
+      <div class="res-emoji">🏥</div>
+      <div class="res-info">
+        <div class="res-name">Medical Supply</div>
+        <div class="res-pct" id="medical-pct">--%</div>
+        <div class="res-sub" id="medical-sub">Loading...</div>
+        <div class="res-update">
+          <input type="range" min="0" max="100" value="50" id="medical-slider" oninput="document.getElementById('medical-slider-val').textContent=this.value+'%'"/>
+          <span id="medical-slider-val" style="font-size:0.65rem;width:32px">50%</span>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('medical', document.getElementById('medical-slider').value)">SET</button>
+        </div>
+      </div>
+      <div class="bar-track" style="width:50px">
+        <div class="bar-fill" id="medical-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SURVIVORS TAB -->
+  <div class="view" id="view-survivors">
+    <div class="sec">> YOUR STATUS CHECK-IN</div>
+    <div class="checkin-box">
+      <div class="form-lbl" style="margin-bottom:6px">YOUR CALLSIGN</div>
+      <input type="text" id="my-name" placeholder="e.g. RAVEN-7" maxlength="20" style="width:100%;margin-bottom:10px"/>
+      <div class="form-lbl" style="margin-bottom:6px">YOUR ZONE</div>
+      <input type="text" id="my-zone" placeholder="e.g. A2, B3, C4" maxlength="5" style="width:100%;margin-bottom:10px"/>
+      <div class="status-btns">
+        <button class="sbtn safe" onclick="checkIn('safe')">✓ I AM SAFE</button>
+        <button class="sbtn need" onclick="checkIn('need')">⚡ NEED HELP</button>
+        <button class="sbtn has"  onclick="checkIn('has')">◈ I HAVE SUPPLIES</button>
+      </div>
+    </div>
+    <div class="sec">> ALL SURVIVORS</div>
+    <div id="survivor-list"></div>
+  </div>
+
+  <!-- HERBS TAB -->
+  <div class="view" id="view-herbs">
+    <div class="sec">> EMERGENCY MEDICINE — NATURAL REMEDIES DATABASE</div>
+    <input type="text" class="herb-search" id="herb-search" placeholder="> search by symptom or herb name..." oninput="filterHerbs(this.value)"/>
+    <div id="herb-list"></div>
+  </div>
+
+</div>
+
+<!-- BROADCAST ALERT BAR — always visible at bottom -->
+<div class="broadcast-bar">
+  <div class="sec">> BROADCAST ALERT</div>
+  <div class="form-row">
+    <div class="form-col">
+      <div class="form-lbl">Severity</div>
+      <select id="f-type">
+        <option value="critical">🔴 Critical</option>
+        <option value="warning">🟡 Warning</option>
+        <option value="info">🔵 Info</option>
+        <option value="safe">🟢 Safe</option>
+      </select>
+    </div>
+    <div class="form-col">
+      <div class="form-lbl">Zone</div>
+      <input type="text" id="f-zone" placeholder="e.g. C4" maxlength="5" style="width:70px"/>
+    </div>
+    <div class="form-col">
+      <div class="form-lbl">Resource</div>
+      <select id="f-resource">
+        <option value="">General</option>
+        <option value="Water">💧 Water</option>
+        <option value="Food">🍱 Food</option>
+        <option value="Medical">🏥 Medical</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <textarea id="f-msg" placeholder="> describe the situation..."></textarea>
+  </div>
+  <div class="form-row">
+    <button class="btn btn-red" onclick="broadcastAlert()">▶ BROADCAST TO ALL</button>
+    <button class="btn btn-chaos" onclick="triggerChaos()">⚡ CHAOS EVENT</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CONFIGURATION
+//  This is the ONLY thing you change on the day.
+//  Replace with your laptop's actual IP address on the hotspot.
+//  Find it: Windows → ipconfig | Mac/Linux → ifconfig
+//  Look for the IPv4 address when connected to your own hotspot
+// ============================================================
+const SERVER = "http://192.168.1.100:5000";  // ← CHANGE THIS
+
+// ============================================================
+//  STATE
+//  These variables store data locally so the UI can update
+//  without waiting for a server response every time.
+// ============================================================
+let lastMessageId = -1;   // tracks which alerts we've already seen
+let allHerbs = [];         // all herb data loaded once
+let map = null;            // Leaflet map object
+let myMarker = null;       // user's location pin on map
+let alertMarkers = [];     // alert pins on map
+
+// ============================================================
+//  CLOCK
+// ============================================================
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================
+//  SERVER COMMUNICATION
+//  These functions talk to your Flask server.
+//  They use fetch() — a built-in browser function.
+// ============================================================
+
+async function fetchJSON(path, method="GET", body=null) {
+  /**
+   * Generic function to talk to the server.
+   * path   = the endpoint, e.g. "/messages"
+   * method = "GET" (read) or "POST" (send)
+   * body   = data to send if POST
+   */
+  try {
+    const opts = {
+      method,
+      headers: { "Content-Type": "application/json" }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(SERVER + path, opts);
+    return await res.json();
+  } catch(e) {
+    console.error("Server unreachable:", e);
+    return null;
+  }
+}
+
+// ============================================================
+//  POLLING — runs every 2 seconds
+//  This is what makes real-time sync work.
+//  Every phone constantly asks "anything new?" and updates
+//  the screen if something changed.
+// ============================================================
+
+async function pollServer() {
+  // 1. Get new messages
+  const msgs = await fetchJSON("/messages");
+  if (msgs) {
+    const newOnes = msgs.filter(m => m.id > lastMessageId);
+    if (newOnes.length > 0) {
+      newOnes.forEach(m => {
+        prependAlert(m);           // add to alert feed UI
+        addAlertPin(m);            // add pin to map
+      });
+      lastMessageId = msgs[msgs.length - 1].id;
+      updateStats(msgs);
+    }
+    // Update online badge
+    document.getElementById('online-badge').className = 'online-badge online';
+    document.getElementById('online-badge').textContent = '● MESH ACTIVE';
+  } else {
+    document.getElementById('online-badge').className = 'online-badge offline';
+    document.getElementById('online-badge').textContent = '● OFFLINE';
+  }
+
+  // 2. Get resource levels
+  const res = await fetchJSON("/resources");
+  if (res) updateResourceUI(res);
+
+  // 3. Get survivors
+  const survs = await fetchJSON("/survivors");
+  if (survs) updateSurvivorUI(survs);
+}
+
+// Start polling immediately and then every 2 seconds
+pollServer();
+setInterval(pollServer, 2000);
+
+// ============================================================
+//  ALERT FEED
+// ============================================================
+
+function prependAlert(a) {
+  /**
+   * Creates an alert card and puts it at the TOP of the feed.
+   * Most recent alerts appear first.
+   */
+  const icons = { critical:"🔴", warning:"🟡", info:"🔵", safe:"🟢" };
+  const feed = document.getElementById('alert-feed');
+  const card = document.createElement('div');
+  card.className = `alert-card ${a.type}`;
+  card.innerHTML = `
+    <div class="alert-icon">${icons[a.type]}</div>
+    <div class="alert-body">
+      <div class="alert-meta">
+        <span>${a.time}</span>
+        <span class="alert-zone">ZONE ${a.zone || '?'}</span>
+        ${a.resource ? `<span>${a.resource}</span>` : ''}
+        ${a.name ? `<span>${a.name}</span>` : ''}
+      </div>
+      <div class="alert-msg">${a.msg}</div>
+      <span class="alert-tag">${a.type}</span>
+    </div>`;
+  feed.insertBefore(card, feed.firstChild);
+}
+
+async function broadcastAlert() {
+  const msg = document.getElementById('f-msg').value.trim();
+  if (!msg) { showToast("⚠ Write a message first"); return; }
+
+  const alert = {
+    type:     document.getElementById('f-type').value,
+    zone:     document.getElementById('f-zone').value.toUpperCase() || "?",
+    resource: document.getElementById('f-resource').value,
+    msg:      msg,
+    name:     (document.getElementById('my-name').value || "UNKNOWN").toUpperCase(),
+    time:     new Date().toTimeString().slice(0,5)
+  };
+
+  const result = await fetchJSON("/messages", "POST", alert);
+  if (result) {
+    document.getElementById('f-msg').value = '';
+    showToast(`✓ Alert broadcast to Zone ${alert.zone}`);
+  } else {
+    showToast("⚠ Could not reach server");
+  }
+}
+
+// ============================================================
+//  STATS ROW
+// ============================================================
+
+function updateStats(msgs) {
+  document.getElementById('stat-alerts').textContent = msgs.length;
+}
+
+// ============================================================
+//  MAP (Leaflet.js)
+//  Points to your Flask server for tiles instead of internet.
+// ============================================================
+
+function initMap() {
+  // VIT-AP University coordinates
+  map = L.map('leaflet-map').setView([16.544, 80.621], 14);
+
+  // This is where the magic happens:
+  // Instead of fetching tiles from the internet,
+  // we ask our own server which serves them from disk.
+  L.tileLayer(`${SERVER}/tiles/{z}/{x}/{y}.png`, {
+    attribution: 'CrisisComms — Offline Map',
+    maxZoom: 16
+  }).addTo(map);
+}
+
+function addAlertPin(alert) {
+  if (!map) return;
+  // In real usage you'd store lat/lon with the alert
+  // For demo, random pins near VIT-AP
+  const lat = 16.544 + (Math.random() - 0.5) * 0.03;
+  const lon = 80.621 + (Math.random() - 0.5) * 0.03;
+  const colors = { critical:"#ff2a2a", warning:"#ffd000", info:"#00cfff", safe:"#00ff88" };
+  const icon = L.divIcon({
+    html: `<div style="width:12px;height:12px;border-radius:50%;background:${colors[alert.type]};border:2px solid #fff;box-shadow:0 0 8px ${colors[alert.type]}"></div>`,
+    iconSize:[12,12], iconAnchor:[6,6]
+  });
+  const marker = L.marker([lat, lon], {icon}).addTo(map);
+  marker.bindPopup(`<b>Zone ${alert.zone}</b><br>${alert.msg}`);
+}
+
+function locateMe() {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lon } = pos.coords;
+    map.setView([lat, lon], 15);
+    if (myMarker) map.removeLayer(myMarker);
+    const icon = L.divIcon({
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:#00ff88;border:2px solid #fff;box-shadow:0 0 10px #00ff88"></div>`,
+      iconSize:[14,14], iconAnchor:[7,7]
+    });
+    myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("YOU ARE HERE").openPopup();
+    showToast("✓ Location found");
+  }, () => showToast("⚠ Location not available"));
+}
+
+// Initialize map when map tab first opens
+document.querySelector('[onclick*="map"]').addEventListener('click', () => {
+  setTimeout(() => { if (!map) initMap(); map && map.invalidateSize(); }, 100);
+});
+
+// ============================================================
+//  RESOURCES
+// ============================================================
+
+function updateResourceUI(res) {
+  const update = (key, emoji) => {
+    const v = res[key];
+    const color = v >= 60 ? 'var(--green)' : v >= 30 ? 'var(--yellow)' : 'var(--red)';
+    const label = v >= 60 ? 'Stable' : v >= 30 ? 'Low — Monitor Closely' : 'CRITICAL — Immediate Action';
+    document.getElementById(`${key}-pct`).textContent = v + '%';
+    document.getElementById(`${key}-sub`).textContent = label;
+    document.getElementById(`${key}-bar`).style.width = v + '%';
+    document.getElementById(`${key}-bar`).style.background = color;
+    if (key === 'water') {
+      document.getElementById('stat-water').textContent = v + '%';
+      document.getElementById('stat-water').style.color = color;
+    }
+  };
+  update('water');
+  update('food');
+  update('medical');
+}
+
+async function updateResource(key, value) {
+  const body = {};
+  body[key] = parseInt(value);
+  const result = await fetchJSON("/resources", "POST", body);
+  if (result) showToast(`✓ ${key} updated to ${value}%`);
+}
+
+// ============================================================
+//  SURVIVORS
+// ============================================================
+
+async function checkIn(status) {
+  const name = (document.getElementById('my-name').value || 'UNKNOWN').trim().toUpperCase();
+  const zone = (document.getElementById('my-zone').value || '?').trim().toUpperCase();
+  const result = await fetchJSON("/survivors", "POST", { name, status, zone });
+  if (result) showToast(`✓ Checked in as ${name} — ${status.toUpperCase()}`);
+}
+
+function updateSurvivorUI(survs) {
+  document.getElementById('stat-survivors').textContent = survs.length;
+  document.getElementById('stat-need').textContent = survs.filter(s=>s.status==='need').length;
+
+  const list = document.getElementById('survivor-list');
+  list.innerHTML = '';
+  survs.forEach(s => {
+    const tags = { safe:'I AM SAFE', need:'NEED HELP', has:'HAS SUPPLIES' };
+    const el = document.createElement('div');
+    el.className = 'survivor-card';
+    el.innerHTML = `
+      <div class="s-dot ${s.status}"></div>
+      <div class="s-name">${s.name}</div>
+      <div class="s-zone">${s.zone}</div>
+      <span class="s-tag ${s.status}">${tags[s.status]}</span>`;
+    list.appendChild(el);
+  });
+}
+
+// ============================================================
+//  HERBS
+// ============================================================
+
+async function loadHerbs() {
+  const data = await fetchJSON("/herbs");
+  if (data) {
+    allHerbs = data;
+    renderHerbs(allHerbs);
+  }
+}
+
+function renderHerbs(herbs) {
+  const list = document.getElementById('herb-list');
+  list.innerHTML = '';
+  if (herbs.length === 0) {
+    list.innerHTML = '<div style="color:var(--dim);font-size:0.75rem">No results found.</div>';
+    return;
+  }
+  herbs.forEach((h, i) => {
+    const el = document.createElement('div');
+    el.className = 'herb-card';
+    el.innerHTML = `
+      <div class="herb-header">
+        <span class="herb-name">${h.name}</span>
+        <span class="herb-local">${h.localName}</span>
+      </div>
+      <div class="herb-tags">
+        ${h.treats.map(t=>`<span class="herb-tag">${t}</span>`).join('')}
+      </div>
+      <div class="herb-detail">
+        <div class="herb-row"><div class="herb-row-lbl">How to use</div>${h.how}</div>
+        <div class="herb-row"><div class="herb-row-lbl">Where to find</div>${h.found}</div>
+        ${h.warning ? `<div class="herb-warn">⚠ ${h.warning}</div>` : ''}
+        <div class="herb-row" style="margin-top:6px"><div class="herb-row-lbl">Safety</div><span class="severity-${h.severity}">${h.severity.toUpperCase()}</span></div>
+      </div>`;
+    el.onclick = () => el.classList.toggle('open');
+    list.appendChild(el);
+  });
+}
+
+function filterHerbs(query) {
+  const q = query.toLowerCase();
+  const filtered = allHerbs.filter(h =>
+    h.name.toLowerCase().includes(q) ||
+    h.localName.toLowerCase().includes(q) ||
+    h.treats.some(t => t.toLowerCase().includes(q))
+  );
+  renderHerbs(filtered);
+}
+
+// Load herbs when tab opens
+document.querySelector('[onclick*="herbs"]').addEventListener('click', () => {
+  if (allHerbs.length === 0) loadHerbs();
+});
+
+// ============================================================
+//  CHAOS EVENT
+// ============================================================
+
+async function triggerChaos() {
+  const result = await fetchJSON("/chaos", "POST");
+  if (!result) { showToast("⚠ Server not responding"); return; }
+
+  const banner = document.getElementById('chaos-banner');
+  banner.textContent = `⚠ CHAOS: ${result.event.msg} — CLICK TO DISMISS ⚠`;
+  banner.classList.add('show');
+  setTimeout(() => banner.classList.remove('show'), 6000);
+  showToast("⚡ Chaos event triggered — all devices notified");
+}
+
+// ============================================================
+//  TAB SWITCHING
+// ============================================================
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('view-' + name).classList.add('active');
+  if (name === 'map' && !map) setTimeout(initMap, 100);
+  if (name === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
+}
+
+// ============================================================
+//  TOAST NOTIFICATION
+// ============================================================
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ============================================================
+//  INIT — runs on page load
+// ============================================================
+pollServer();      // start polling immediately
+</script>
+</body>
+</html>

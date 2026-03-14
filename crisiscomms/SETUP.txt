@@ -1,0 +1,124 @@
+# CrisisComms — Setup Guide
+# Read this carefully the night before the hackathon.
+
+# ============================================================
+#  STEP 1 — Install Python libraries (do this at home with internet)
+# ============================================================
+
+pip install flask flask-cors requests
+
+
+# ============================================================
+#  STEP 2 — Upload herbs.json to GitHub Gist (Person 3 does this)
+# ============================================================
+
+# 1. Go to https://gist.github.com
+# 2. Sign in with GitHub account
+# 3. Create a new gist, paste the contents of cache/herbs.json
+# 4. Click "Create public gist"
+# 5. Click the "Raw" button
+# 6. Copy that URL
+# 7. Paste it in server.py where it says HERBS_URL
+
+
+# ============================================================
+#  STEP 3 — Run the server ONCE at home with internet
+#            This downloads and caches all map tiles + herbs.
+# ============================================================
+
+python server.py
+
+# Wait for it to print "[✓] Sync complete" before closing.
+# After this, the cache/ folder has everything. You're offline-ready.
+
+
+# ============================================================
+#  STEP 4 — On hackathon day (no internet needed from here)
+# ============================================================
+
+# 1. Turn on your laptop's WiFi hotspot
+#    Windows: Settings → Network → Mobile Hotspot → Turn On
+#    Mac: System Preferences → Sharing → Internet Sharing
+
+# 2. Find your hotspot IP address
+#    Windows: open Command Prompt → type: ipconfig
+#             look for "IPv4 Address" under your hotspot adapter
+#             it will look like: 192.168.137.1
+#    Mac: open Terminal → type: ifconfig
+#             look for "inet" under bridge100
+
+# 3. Open static/index.html and change this line at the top:
+#    const SERVER = "http://192.168.1.100:5000";
+#    Replace 192.168.1.100 with your actual hotspot IP
+
+# 4. Run the server:
+python server.py
+
+# 5. Tell teammates: "Connect to my hotspot, then open http://YOUR_IP:5000"
+
+# 6. You should see "[READY] Phones open: http://YOUR_IP:5000" in the terminal
+
+
+# ============================================================
+#  FOLDER STRUCTURE (what you should have)
+# ============================================================
+
+# crisiscomms/
+# ├── server.py
+# ├── SETUP.txt          (this file)
+# ├── cache/
+# │   ├── herbs.json     (downloaded on first run)
+# │   └── tiles/         (map images, downloaded on first run)
+# │       ├── 13/
+# │       ├── 14/
+# │       └── 15/
+# └── static/
+#     └── index.html     (the app phones open)
+
+
+# ============================================================
+#  TROUBLESHOOTING
+# ============================================================
+
+# Problem: Phones can't reach the server
+# Fix: Make sure your firewall allows port 5000
+#      Windows: search "Windows Firewall" → Allow an app → add Python
+
+# Problem: Map doesn't load
+# Fix: Check that cache/tiles/ has folders inside it
+#      If empty, run server.py with internet connected first
+
+# Problem: "Module not found" error
+# Fix: Run: pip install flask flask-cors requests
+
+# Problem: Server IP not showing correctly
+# Fix: Manually find IP with ipconfig (Windows) or ifconfig (Mac)
+#      Then hardcode it in the SERVER variable in index.html
+
+
+# ============================================================
+#  DEMO SCRIPT (memorize this — 60 seconds)
+# ============================================================
+
+# 1. "This is CrisisComms. It runs entirely on one laptop
+#     with no internet, no cloud, no servers."
+
+# 2. Show map tab — "Map of VIT-AP loaded from local cache."
+
+# 3. Disconnect WiFi from laptop to prove offline.
+#    Map still works. "Fully offline."
+
+# 4. On Phone 1: post a critical alert "Water pipe burst in C4"
+#    On Phone 2: show it appearing within 2 seconds.
+#    "Real-time relay over a WiFi hotspot."
+
+# 5. Hit Chaos Event button.
+#    Banner appears on ALL phones simultaneously.
+#    "Dumb system failure — instantly broadcast to every survivor."
+
+# 6. Open Herbs tab, search "fever"
+#    "No pharmacy? Here's what grows near you."
+
+# 7. "No internet. No towers. No cloud.
+#     Just survivors helping survivors.
+#     adapt . engineer . survive."
