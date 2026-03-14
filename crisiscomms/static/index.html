@@ -5,57 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>CrisisComms — Apocalypse Protocol</title>
 
-<!-- RANDOM POPUP INTERRUPTION SYSTEM -->
-<div id="popup-overlay" style="
-  position:fixed; inset:0; z-index:99999;
-  background:rgba(0,0,0,0.85);
-  display:none; align-items:center; justify-content:center;
-">
-  <div id="popup-box" style="
-    max-width:380px; width:90%;
-    border:1px solid var(--red);
-    background:var(--panel);
-    padding:24px; position:relative;
-    box-shadow: 0 0 40px rgba(255,42,42,0.3);
-    animation: shake 0.3s ease;
-  ">
-    <div id="popup-tag" style="
-      font-size:0.55rem; letter-spacing:0.2em;
-      color:var(--red); margin-bottom:10px;
-      font-family:'Barlow Condensed',sans-serif; font-weight:700;
-    "></div>
-    <div id="popup-title" style="
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:1.3rem; font-weight:900;
-      color:#fff; margin-bottom:10px; letter-spacing:0.05em;
-    "></div>
-    <div id="popup-body" style="
-      font-size:0.75rem; line-height:1.6;
-      color:var(--text); margin-bottom:20px;
-    "></div>
-    <button id="popup-dismiss" style="
-      width:100%; padding:10px;
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:0.9rem; font-weight:700;
-      letter-spacing:0.12em; text-transform:uppercase;
-      background:var(--red); color:#fff; border:none; cursor:pointer;
-    "></button>
-  </div>
-</div>
-
-<!--
-  EXTERNAL LIBRARIES (loaded once while online, cached by browser after)
-  Leaflet = the map library (free, no API key needed)
-  Google Fonts = the typefaces
--->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* ============================================================
-   DESIGN SYSTEM — Dark apocalyptic terminal aesthetic
-   ============================================================ */
 :root {
   --red:    #ff2a2a;
   --orange: #ff6a00;
@@ -81,7 +35,6 @@ body {
   flex-direction: column;
 }
 
-/* CRT scanline overlay — purely visual, gives terminal feel */
 body::after {
   content: '';
   position: fixed; inset: 0;
@@ -89,7 +42,6 @@ body::after {
   pointer-events: none; z-index: 9998;
 }
 
-/* ---- HEADER ---- */
 header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 16px;
@@ -108,7 +60,6 @@ header {
 .online-badge.online  { color: var(--green);  border-color: var(--green);  }
 .online-badge.offline { color: var(--red);    border-color: var(--red);    }
 
-/* ---- TICKER ---- */
 .ticker {
   background: rgba(255,42,42,0.08); border-bottom: 1px solid rgba(255,42,42,0.25);
   padding: 4px 0; overflow: hidden; white-space: nowrap; flex-shrink: 0;
@@ -120,14 +71,12 @@ header {
 }
 @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-100%)} }
 
-/* ---- STAT ROW ---- */
 .stat-row { display:flex; border-bottom: 1px solid var(--border); flex-shrink:0; }
 .stat-box { flex:1; padding: 8px 4px; text-align:center; border-right: 1px solid var(--border); }
 .stat-box:last-child { border-right: none; }
 .stat-num { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight:900; line-height:1; }
 .stat-lbl { font-size: 0.5rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
 
-/* ---- TABS ---- */
 .tabs { display:flex; border-bottom: 1px solid var(--border); flex-shrink:0; overflow-x: auto; }
 .tab {
   padding: 9px 14px; font-size: 0.65rem; letter-spacing: 0.1em; cursor: pointer;
@@ -138,23 +87,19 @@ header {
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--orange); border-bottom-color: var(--orange); background: rgba(255,106,0,0.05); }
 
-/* ---- MAIN CONTENT AREA ---- */
 .content { flex:1; overflow: hidden; position: relative; }
 .view { position: absolute; inset:0; overflow-y: auto; padding: 16px; display:none; }
 .view.active { display: block; }
 
-/* ---- SECTION LABEL ---- */
 .sec { font-size: 0.6rem; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
 
-/* ---- MAP ---- */
-#map-view { padding: 0; }
-#leaflet-map { width: 100%; height: calc(100% - 120px); }
+#view-map { padding: 0; }
+#leaflet-map { width: 100%; height: calc(100% - 44px); }
 .map-controls {
   padding: 10px 14px; border-top: 1px solid var(--border); background: var(--panel);
   display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
 }
 
-/* ---- ALERT FEED ---- */
 .alert-card {
   border: 1px solid var(--border); padding: 11px 13px; margin-bottom: 8px;
   background: var(--panel); display: flex; gap: 11px;
@@ -179,7 +124,6 @@ header {
 .alert-card.info     .alert-tag { color:var(--blue);   border-color:var(--blue);   }
 .alert-card.safe     .alert-tag { color:var(--green);  border-color:var(--green);  }
 
-/* ---- FORM ---- */
 .broadcast-bar {
   border-top: 1px solid var(--border); padding: 12px 14px;
   background: rgba(255,106,0,0.03); flex-shrink:0;
@@ -199,14 +143,13 @@ textarea { width:100%; resize:vertical; min-height:52px; }
   font-size: 0.82rem; letter-spacing:0.1em; text-transform:uppercase;
   cursor:pointer; border:none; transition: all 0.15s;
 }
-.btn-red    { background: var(--red); color:#fff; }
+.btn-red   { background: var(--red); color:#fff; }
 .btn-red:hover { background:#ff4444; box-shadow: 0 0 14px rgba(255,42,42,0.35); }
-.btn-ghost  { background:transparent; border:1px solid var(--border); color:var(--dim); }
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
 .btn-ghost:hover { border-color:var(--text); color:var(--text); }
-.btn-chaos  { background: rgba(255,106,0,0.15); border:1px solid var(--orange); color:var(--orange); }
+.btn-chaos { background: rgba(255,106,0,0.15); border:1px solid var(--orange); color:var(--orange); }
 .btn-chaos:hover { background: rgba(255,106,0,0.25); }
 
-/* ---- RESOURCE BARS ---- */
 .res-card {
   border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px;
   background: var(--panel); display:flex; align-items:center; gap:12px;
@@ -221,15 +164,14 @@ textarea { width:100%; resize:vertical; min-height:52px; }
 .res-update { display:flex; gap:6px; align-items:center; margin-top:6px; }
 .res-update input[type=range] { flex:1; accent-color: var(--orange); }
 
-/* ---- SURVIVORS ---- */
 .survivor-card {
   border:1px solid var(--border); padding:9px 12px; margin-bottom:6px;
   background:var(--panel); display:flex; align-items:center; gap:10px;
 }
 .s-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 .s-dot.safe { background:var(--green); box-shadow:0 0 6px var(--green); }
-.s-dot.need { background:var(--red); box-shadow:0 0 6px var(--red); animation:pulse 1s infinite; }
-.s-dot.has  { background:var(--blue); box-shadow:0 0 6px var(--blue); }
+.s-dot.need { background:var(--red);   box-shadow:0 0 6px var(--red); animation:pulse 1s infinite; }
+.s-dot.has  { background:var(--blue);  box-shadow:0 0 6px var(--blue); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 .s-name { flex:1; font-size:0.75rem; }
 .s-zone { font-size:0.6rem; color:var(--dim); margin-right:6px; }
@@ -246,13 +188,12 @@ textarea { width:100%; resize:vertical; min-height:52px; }
   background:transparent; border:1px solid; text-transform:uppercase; transition:all 0.15s;
 }
 .sbtn.safe { color:var(--green); border-color:var(--green); }
-.sbtn.safe:hover,.sbtn.safe.active { background:rgba(0,255,136,0.1); }
+.sbtn.safe:hover { background:rgba(0,255,136,0.1); }
 .sbtn.need { color:var(--red);   border-color:var(--red); }
-.sbtn.need:hover,.sbtn.need.active { background:rgba(255,42,42,0.1); }
+.sbtn.need:hover { background:rgba(255,42,42,0.1); }
 .sbtn.has  { color:var(--blue);  border-color:var(--blue); }
-.sbtn.has:hover,.sbtn.has.active  { background:rgba(0,207,255,0.1); }
+.sbtn.has:hover  { background:rgba(0,207,255,0.1); }
 
-/* ---- HERBS ---- */
 .herb-search { width:100%; margin-bottom:12px; padding:9px 12px; }
 .herb-card {
   border:1px solid var(--border); padding:13px 14px; margin-bottom:8px;
@@ -260,23 +201,19 @@ textarea { width:100%; resize:vertical; min-height:52px; }
 }
 .herb-card:hover { border-color: var(--orange); }
 .herb-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
-.herb-name { font-family:'Barlow Condensed', sans-serif; font-size:1rem; font-weight:700; color:#fff; }
+.herb-name  { font-family:'Barlow Condensed', sans-serif; font-size:1rem; font-weight:700; color:#fff; }
 .herb-local { font-size:0.62rem; color:var(--orange); letter-spacing:0.1em; }
-.herb-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
-.herb-tag {
-  font-size:0.55rem; padding:1px 7px; border:1px solid rgba(0,207,255,0.3);
-  color:var(--blue); letter-spacing:0.08em;
-}
+.herb-tags  { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+.herb-tag   { font-size:0.55rem; padding:1px 7px; border:1px solid rgba(0,207,255,0.3); color:var(--blue); letter-spacing:0.08em; }
 .herb-detail { display:none; }
 .herb-card.open .herb-detail { display:block; }
 .herb-row { margin-top:6px; font-size:0.72rem; line-height:1.5; }
 .herb-row-lbl { color:var(--dim); font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; }
 .herb-warn { color:var(--yellow); font-size:0.68rem; margin-top:8px; padding:6px 10px; border:1px solid rgba(255,208,0,0.25); background:rgba(255,208,0,0.04); }
-.severity-safe   { color:var(--green); }
-.severity-mild   { color:var(--yellow); }
-.severity-caution{ color:var(--red); }
+.severity-safe    { color:var(--green); }
+.severity-mild    { color:var(--yellow); }
+.severity-caution { color:var(--red); }
 
-/* ---- CHAOS BANNER ---- */
 .chaos-banner {
   position:fixed; top:0; left:0; right:0; z-index:9999;
   background:var(--red); color:#fff; text-align:center;
@@ -291,7 +228,6 @@ textarea { width:100%; resize:vertical; min-height:52px; }
   40%,80%{transform:translateX(4px)}
 }
 
-/* ---- TOAST ---- */
 .toast {
   position:fixed; bottom:16px; right:16px; z-index:9997;
   background:var(--panel); border:1px solid var(--orange);
@@ -299,12 +235,50 @@ textarea { width:100%; resize:vertical; min-height:52px; }
   max-width:260px; animation:slidein 0.25s ease;
 }
 
-/* ---- SCROLLBAR ---- */
+/* POPUP OVERLAY */
+#popup-overlay {
+  position:fixed; inset:0; z-index:99999;
+  background:rgba(0,0,0,0.88);
+  display:none; align-items:center; justify-content:center;
+}
+#popup-box {
+  max-width:380px; width:90%;
+  border:1px solid var(--red);
+  background:var(--panel);
+  padding:24px; position:relative;
+  box-shadow: 0 0 40px rgba(255,42,42,0.35);
+  animation: shake 0.3s ease;
+}
+#popup-tag {
+  font-size:0.55rem; letter-spacing:0.2em;
+  color:var(--red); margin-bottom:10px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+}
+#popup-title {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.4rem; font-weight:900;
+  color:#fff; margin-bottom:10px; letter-spacing:0.05em;
+  line-height:1.2;
+}
+#popup-body {
+  font-size:0.75rem; line-height:1.7;
+  color:var(--text); margin-bottom:20px;
+  border-left:2px solid var(--red); padding-left:10px;
+}
+#popup-dismiss {
+  width:100%; padding:11px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:0.9rem; font-weight:700;
+  letter-spacing:0.12em; text-transform:uppercase;
+  background:var(--red); color:#fff; border:none; cursor:pointer;
+  transition: background 0.15s;
+}
+#popup-dismiss:hover { background:#ff4444; }
+
 ::-webkit-scrollbar { width:3px; }
 ::-webkit-scrollbar-track { background:#0a0a0a; }
 ::-webkit-scrollbar-thumb { background:#2a2a2a; }
 
-/* ---- MAP PINS ---- */
 .leaflet-popup-content-wrapper {
   background:var(--panel); border:1px solid var(--border); border-radius:0;
   color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.72rem;
@@ -314,7 +288,20 @@ textarea { width:100%; resize:vertical; min-height:52px; }
 </head>
 <body>
 
-<!-- CHAOS EVENT BANNER — appears on top of everything -->
+<!-- =====================================================
+     POPUP OVERLAY — sits on top of everything
+     Filled dynamically by showPopup() in JS
+     ===================================================== -->
+<div id="popup-overlay">
+  <div id="popup-box">
+    <div id="popup-tag"></div>
+    <div id="popup-title"></div>
+    <div id="popup-body"></div>
+    <button id="popup-dismiss"></button>
+  </div>
+</div>
+
+<!-- CHAOS BANNER -->
 <div class="chaos-banner" id="chaos-banner" onclick="this.classList.remove('show')">
   ⚠ CLICK TO DISMISS ⚠
 </div>
@@ -328,9 +315,9 @@ textarea { width:100%; resize:vertical; min-height:52px; }
   </div>
 </header>
 
-<!-- TICKER — scrolling news bar -->
+<!-- TICKER -->
 <div class="ticker">
-  <span class="ticker-inner" id="ticker-text">
+  <span class="ticker-inner">
     ⚠ GRID DOWN SINCE 14:32 &nbsp;•&nbsp; WATER RESERVES CRITICAL IN ZONE C4 &nbsp;•&nbsp; MEDICAL AID AT ZONE A1 &nbsp;•&nbsp; FOOD DROP AT D4 — 18:00 HRS &nbsp;•&nbsp; AVOID ZONE E5 — STRUCTURAL DAMAGE &nbsp;•&nbsp;
   </span>
 </div>
@@ -364,16 +351,16 @@ textarea { width:100%; resize:vertical; min-height:52px; }
   <button class="tab" onclick="switchTab('herbs',this)">// HERBS</button>
 </div>
 
-<!-- CONTENT VIEWS -->
+<!-- VIEWS -->
 <div class="content">
 
-  <!-- ALERTS TAB -->
+  <!-- ALERTS -->
   <div class="view active" id="view-alerts">
     <div class="sec">> LIVE ALERT FEED — REAL TIME FROM ALL SURVIVORS</div>
     <div id="alert-feed"></div>
   </div>
 
-  <!-- MAP TAB -->
+  <!-- MAP -->
   <div class="view" id="view-map" style="padding:0">
     <div id="leaflet-map"></div>
     <div class="map-controls">
@@ -382,63 +369,57 @@ textarea { width:100%; resize:vertical; min-height:52px; }
     </div>
   </div>
 
-  <!-- RESOURCES TAB -->
+  <!-- RESOURCES -->
   <div class="view" id="view-resources">
     <div class="sec">> GLOBAL RESOURCE LEVELS — UPDATE WHEN YOU HAVE BETTER INFO</div>
 
-    <div class="res-card" id="res-water">
+    <div class="res-card">
       <div class="res-emoji">💧</div>
       <div class="res-info">
         <div class="res-name">Water Supply</div>
         <div class="res-pct" id="water-pct">--%</div>
         <div class="res-sub" id="water-sub">Loading...</div>
         <div class="res-update">
-          <input type="range" min="0" max="100" value="50" id="water-slider" oninput="document.getElementById('water-slider-val').textContent=this.value+'%'"/>
-          <span id="water-slider-val" style="font-size:0.65rem;width:32px">50%</span>
-          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('water', document.getElementById('water-slider').value)">SET</button>
+          <input type="range" min="0" max="100" value="50" id="water-slider" oninput="document.getElementById('water-val').textContent=this.value+'%'"/>
+          <span id="water-val" style="font-size:0.65rem;width:32px">50%</span>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('water',document.getElementById('water-slider').value)">SET</button>
         </div>
       </div>
-      <div class="bar-track" style="width:50px">
-        <div class="bar-fill" id="water-bar"></div>
-      </div>
+      <div class="bar-track" style="width:50px"><div class="bar-fill" id="water-bar"></div></div>
     </div>
 
-    <div class="res-card" id="res-food">
+    <div class="res-card">
       <div class="res-emoji">🍱</div>
       <div class="res-info">
         <div class="res-name">Food Supply</div>
         <div class="res-pct" id="food-pct">--%</div>
         <div class="res-sub" id="food-sub">Loading...</div>
         <div class="res-update">
-          <input type="range" min="0" max="100" value="50" id="food-slider" oninput="document.getElementById('food-slider-val').textContent=this.value+'%'"/>
-          <span id="food-slider-val" style="font-size:0.65rem;width:32px">50%</span>
-          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('food', document.getElementById('food-slider').value)">SET</button>
+          <input type="range" min="0" max="100" value="50" id="food-slider" oninput="document.getElementById('food-val').textContent=this.value+'%'"/>
+          <span id="food-val" style="font-size:0.65rem;width:32px">50%</span>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('food',document.getElementById('food-slider').value)">SET</button>
         </div>
       </div>
-      <div class="bar-track" style="width:50px">
-        <div class="bar-fill" id="food-bar"></div>
-      </div>
+      <div class="bar-track" style="width:50px"><div class="bar-fill" id="food-bar"></div></div>
     </div>
 
-    <div class="res-card" id="res-medical">
+    <div class="res-card">
       <div class="res-emoji">🏥</div>
       <div class="res-info">
         <div class="res-name">Medical Supply</div>
         <div class="res-pct" id="medical-pct">--%</div>
         <div class="res-sub" id="medical-sub">Loading...</div>
         <div class="res-update">
-          <input type="range" min="0" max="100" value="50" id="medical-slider" oninput="document.getElementById('medical-slider-val').textContent=this.value+'%'"/>
-          <span id="medical-slider-val" style="font-size:0.65rem;width:32px">50%</span>
-          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('medical', document.getElementById('medical-slider').value)">SET</button>
+          <input type="range" min="0" max="100" value="50" id="medical-slider" oninput="document.getElementById('medical-val').textContent=this.value+'%'"/>
+          <span id="medical-val" style="font-size:0.65rem;width:32px">50%</span>
+          <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.65rem" onclick="updateResource('medical',document.getElementById('medical-slider').value)">SET</button>
         </div>
       </div>
-      <div class="bar-track" style="width:50px">
-        <div class="bar-fill" id="medical-bar"></div>
-      </div>
+      <div class="bar-track" style="width:50px"><div class="bar-fill" id="medical-bar"></div></div>
     </div>
   </div>
 
-  <!-- SURVIVORS TAB -->
+  <!-- SURVIVORS -->
   <div class="view" id="view-survivors">
     <div class="sec">> YOUR STATUS CHECK-IN</div>
     <div class="checkin-box">
@@ -456,16 +437,16 @@ textarea { width:100%; resize:vertical; min-height:52px; }
     <div id="survivor-list"></div>
   </div>
 
-  <!-- HERBS TAB -->
+  <!-- HERBS -->
   <div class="view" id="view-herbs">
     <div class="sec">> EMERGENCY MEDICINE — NATURAL REMEDIES DATABASE</div>
-    <input type="text" class="herb-search" id="herb-search" placeholder="> search by symptom or herb name..." oninput="filterHerbs(this.value)"/>
+    <input type="text" class="herb-search" id="herb-search" placeholder="> search symptom or herb name..." oninput="filterHerbs(this.value)"/>
     <div id="herb-list"></div>
   </div>
 
 </div>
 
-<!-- BROADCAST ALERT BAR — always visible at bottom -->
+<!-- BROADCAST BAR — always at bottom -->
 <div class="broadcast-bar">
   <div class="sec">> BROADCAST ALERT</div>
   <div class="form-row">
@@ -496,31 +477,132 @@ textarea { width:100%; resize:vertical; min-height:52px; }
     <textarea id="f-msg" placeholder="> describe the situation..."></textarea>
   </div>
   <div class="form-row">
-    <button class="btn btn-red" onclick="broadcastAlert()">▶ BROADCAST TO ALL</button>
+    <button class="btn btn-red"   onclick="broadcastAlert()">▶ BROADCAST TO ALL</button>
     <button class="btn btn-chaos" onclick="triggerChaos()">⚡ CHAOS EVENT</button>
   </div>
 </div>
 
 <script>
 // ============================================================
-//  CONFIGURATION
-//  This is the ONLY thing you change on the day.
-//  Replace with your laptop's actual IP address on the hotspot.
-//  Find it: Windows → ipconfig | Mac/Linux → ifconfig
-//  Look for the IPv4 address when connected to your own hotspot
+//  CONFIG — change this ONE line on hackathon day
+//  Find your IP: Windows → ipconfig | Mac → ifconfig
 // ============================================================
-const SERVER = "http://192.168.1.100:5000";  // ← CHANGE THIS
+const SERVER = "http://192.168.1.100:5000"; // ← CHANGE THIS
 
 // ============================================================
 //  STATE
-//  These variables store data locally so the UI can update
-//  without waiting for a server response every time.
 // ============================================================
-let lastMessageId = -1;   // tracks which alerts we've already seen
-let allHerbs = [];         // all herb data loaded once
-let map = null;            // Leaflet map object
-let myMarker = null;       // user's location pin on map
-let alertMarkers = [];     // alert pins on map
+let lastMessageId = -1;
+let allHerbs      = [];
+let map           = null;
+let myMarker      = null;
+
+// ============================================================
+//  POPUP DATA — 12 different apocalypse interruptions
+// ============================================================
+const POPUPS = [
+  {
+    tag:     "// SYSTEM WARNING",
+    title:   "MEMORY CORRUPTION DETECTED",
+    body:    "Sector 7 relay buffer has degraded. Your transmission may be logged by hostile factions. Proceed at your own risk. The grid does not guarantee delivery.",
+    dismiss: "UNDERSTOOD — TRANSMIT ANYWAY"
+  },
+  {
+    tag:     "// FACTION ALERT",
+    title:   "UNKNOWN SIGNAL INTERCEPTED",
+    body:    "A third-party node is scanning this frequency. Identity unverified. Possible hostile reconnaissance. Your coordinates may be exposed upon broadcast.",
+    dismiss: "IGNORE THREAT — CONTINUE"
+  },
+  {
+    tag:     "// SUPPLY SHORTAGE",
+    title:   "BANDWIDTH RATION EXCEEDED",
+    body:    "You have consumed 94% of your daily transmission quota. The Council has flagged your node for audit. This action will be recorded in the ledger.",
+    dismiss: "SUBMIT TO THE LEDGER"
+  },
+  {
+    tag:     "// CRYPTIC MESSAGE",
+    title:   "THE WATCHER SEES YOU",
+    body:    "Node 7-GAMMA has been observing your activity since 03:41. It has not identified itself. It has not left. Do you still wish to proceed?",
+    dismiss: "YES. LET IT WATCH."
+  },
+  {
+    tag:     "// INFRASTRUCTURE FAILURE",
+    title:   "RELAY NODE UNSTABLE",
+    body:    "The nearest mesh relay is running at 12% capacity. Packet loss is at 67%. Your message may arrive corrupted, duplicated, or not at all.",
+    dismiss: "SEND IT ANYWAY"
+  },
+  {
+    tag:     "// PROTOCOL BREACH",
+    title:   "AUTHENTICATION EXPIRED",
+    body:    "Your survivor token was issued 6 days ago. Central registry is offline and cannot reissue. You are operating on borrowed clearance.",
+    dismiss: "CONTINUE ON BORROWED TIME"
+  },
+  {
+    tag:     "// RESOURCE ALERT",
+    title:   "WATER TABLE CRITICALLY LOW",
+    body:    "Hydrological sensors in Zone C4 are reading 8%. At current consumption, this zone has 14 hours of supply remaining. Rationing is not optional.",
+    dismiss: "ACKNOWLEDGED"
+  },
+  {
+    tag:     "// SYSTEM MESSAGE",
+    title:   "WHO AUTHORISED THIS?",
+    body:    "This action requires clearance level DELTA. You hold clearance level GAMMA. The difference is one letter. Proceed and this will be noted.",
+    dismiss: "NOTE IT. I'M PROCEEDING."
+  },
+  {
+    tag:     "// PHANTOM SIGNAL",
+    title:   "ECHO FROM A DEAD NODE",
+    body:    "Node B7 has been offline for 9 days. It just responded to a ping. No survivors have been reported in that sector. The signal said: 'still here'.",
+    dismiss: "CLOSE AND DON'T THINK ABOUT IT"
+  },
+  {
+    tag:     "// DUMB SYSTEM FAILURE",
+    title:   "ERROR CODE: UNKNOWN ERROR",
+    body:    "The system has encountered an error it cannot describe. The logs show only the word 'NO' repeated 847 times. Diagnostics have been disabled.",
+    dismiss: "OVERRIDE DIAGNOSTICS"
+  },
+  {
+    tag:     "// FACTION BROADCAST",
+    title:   "THE COUNCIL IS WATCHING",
+    body:    "Sector broadcast quotas have been reinstated effective immediately. Excessive communication is classified as hoarding. This is your first warning.",
+    dismiss: "THIS IS NOT HOARDING"
+  },
+  {
+    tag:     "// POWER WARNING",
+    title:   "GENERATOR FUEL AT 3%",
+    body:    "The node powering this mesh has 3% fuel remaining. Estimated uptime: 22 minutes. Your action will consume approximately 0.4% of remaining capacity.",
+    dismiss: "USE THE 0.4%"
+  }
+];
+
+let lastPopupIndex = -1;
+
+// showPopup() — pauses any action until user dismisses the popup
+// How it works: returns a Promise that only resolves on dismiss click
+// Using "await showPopup()" in a function freezes that function until resolved
+function showPopup() {
+  return new Promise((resolve) => {
+    let index;
+    do {
+      index = Math.floor(Math.random() * POPUPS.length);
+    } while (index === lastPopupIndex);
+    lastPopupIndex = index;
+
+    const p = POPUPS[index];
+    document.getElementById('popup-tag').textContent     = p.tag;
+    document.getElementById('popup-title').textContent   = p.title;
+    document.getElementById('popup-body').textContent    = p.body;
+    document.getElementById('popup-dismiss').textContent = p.dismiss;
+
+    const overlay = document.getElementById('popup-overlay');
+    overlay.style.display = 'flex';
+
+    document.getElementById('popup-dismiss').onclick = () => {
+      overlay.style.display = 'none';
+      resolve();
+    };
+  });
+}
 
 // ============================================================
 //  CLOCK
@@ -533,81 +615,51 @@ updateClock();
 
 // ============================================================
 //  SERVER COMMUNICATION
-//  These functions talk to your Flask server.
-//  They use fetch() — a built-in browser function.
 // ============================================================
-
 async function fetchJSON(path, method="GET", body=null) {
-  /**
-   * Generic function to talk to the server.
-   * path   = the endpoint, e.g. "/messages"
-   * method = "GET" (read) or "POST" (send)
-   * body   = data to send if POST
-   */
   try {
-    const opts = {
-      method,
-      headers: { "Content-Type": "application/json" }
-    };
+    const opts = { method, headers: { "Content-Type": "application/json" } };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(SERVER + path, opts);
     return await res.json();
   } catch(e) {
-    console.error("Server unreachable:", e);
     return null;
   }
 }
 
 // ============================================================
-//  POLLING — runs every 2 seconds
-//  This is what makes real-time sync work.
-//  Every phone constantly asks "anything new?" and updates
-//  the screen if something changed.
+//  POLLING — every 2 seconds, ask server for new data
 // ============================================================
-
 async function pollServer() {
-  // 1. Get new messages
   const msgs = await fetchJSON("/messages");
   if (msgs) {
     const newOnes = msgs.filter(m => m.id > lastMessageId);
     if (newOnes.length > 0) {
-      newOnes.forEach(m => {
-        prependAlert(m);           // add to alert feed UI
-        addAlertPin(m);            // add pin to map
-      });
+      newOnes.forEach(m => { prependAlert(m); addAlertPin(m); });
       lastMessageId = msgs[msgs.length - 1].id;
-      updateStats(msgs);
+      document.getElementById('stat-alerts').textContent = msgs.length;
     }
-    // Update online badge
-    document.getElementById('online-badge').className = 'online-badge online';
+    document.getElementById('online-badge').className   = 'online-badge online';
     document.getElementById('online-badge').textContent = '● MESH ACTIVE';
   } else {
-    document.getElementById('online-badge').className = 'online-badge offline';
+    document.getElementById('online-badge').className   = 'online-badge offline';
     document.getElementById('online-badge').textContent = '● OFFLINE';
   }
 
-  // 2. Get resource levels
   const res = await fetchJSON("/resources");
   if (res) updateResourceUI(res);
 
-  // 3. Get survivors
   const survs = await fetchJSON("/survivors");
   if (survs) updateSurvivorUI(survs);
 }
 
-// Start polling immediately and then every 2 seconds
 pollServer();
 setInterval(pollServer, 2000);
 
 // ============================================================
-//  ALERT FEED
+//  ALERTS
 // ============================================================
-
 function prependAlert(a) {
-  /**
-   * Creates an alert card and puts it at the TOP of the feed.
-   * Most recent alerts appear first.
-   */
   const icons = { critical:"🔴", warning:"🟡", info:"🔵", safe:"🟢" };
   const feed = document.getElementById('alert-feed');
   const card = document.createElement('div');
@@ -617,9 +669,9 @@ function prependAlert(a) {
     <div class="alert-body">
       <div class="alert-meta">
         <span>${a.time}</span>
-        <span class="alert-zone">ZONE ${a.zone || '?'}</span>
+        <span class="alert-zone">ZONE ${a.zone||'?'}</span>
         ${a.resource ? `<span>${a.resource}</span>` : ''}
-        ${a.name ? `<span>${a.name}</span>` : ''}
+        ${a.name    ? `<span>${a.name}</span>`     : ''}
       </div>
       <div class="alert-msg">${a.msg}</div>
       <span class="alert-tag">${a.type}</span>
@@ -630,17 +682,17 @@ function prependAlert(a) {
 async function broadcastAlert() {
   const msg = document.getElementById('f-msg').value.trim();
   if (!msg) { showToast("⚠ Write a message first"); return; }
-  await showPopup();  // ← ADD THIS LINE
+
+  await showPopup(); // ← POPUP FIRES HERE, action waits
 
   const alert = {
     type:     document.getElementById('f-type').value,
     zone:     document.getElementById('f-zone').value.toUpperCase() || "?",
     resource: document.getElementById('f-resource').value,
-    msg:      msg,
+    msg,
     name:     (document.getElementById('my-name').value || "UNKNOWN").toUpperCase(),
     time:     new Date().toTimeString().slice(0,5)
   };
-
   const result = await fetchJSON("/messages", "POST", alert);
   if (result) {
     document.getElementById('f-msg').value = '';
@@ -651,35 +703,17 @@ async function broadcastAlert() {
 }
 
 // ============================================================
-//  STATS ROW
+//  MAP
 // ============================================================
-
-function updateStats(msgs) {
-  document.getElementById('stat-alerts').textContent = msgs.length;
-}
-
-// ============================================================
-//  MAP (Leaflet.js)
-//  Points to your Flask server for tiles instead of internet.
-// ============================================================
-
 function initMap() {
-  // VIT-AP University coordinates
   map = L.map('leaflet-map').setView([16.544, 80.621], 14);
-
-  // This is where the magic happens:
-  // Instead of fetching tiles from the internet,
-  // we ask our own server which serves them from disk.
   L.tileLayer(`${SERVER}/tiles/{z}/{x}/{y}.png`, {
-    attribution: 'CrisisComms — Offline Map',
-    maxZoom: 16
+    attribution: 'CrisisComms — Offline Map', maxZoom: 16
   }).addTo(map);
 }
 
 function addAlertPin(alert) {
   if (!map) return;
-  // In real usage you'd store lat/lon with the alert
-  // For demo, random pins near VIT-AP
   const lat = 16.544 + (Math.random() - 0.5) * 0.03;
   const lon = 80.621 + (Math.random() - 0.5) * 0.03;
   const colors = { critical:"#ff2a2a", warning:"#ffd000", info:"#00cfff", safe:"#00ff88" };
@@ -687,76 +721,66 @@ function addAlertPin(alert) {
     html: `<div style="width:12px;height:12px;border-radius:50%;background:${colors[alert.type]};border:2px solid #fff;box-shadow:0 0 8px ${colors[alert.type]}"></div>`,
     iconSize:[12,12], iconAnchor:[6,6]
   });
-  const marker = L.marker([lat, lon], {icon}).addTo(map);
-  marker.bindPopup(`<b>Zone ${alert.zone}</b><br>${alert.msg}`);
+  L.marker([lat,lon],{icon}).addTo(map).bindPopup(`<b>Zone ${alert.zone}</b><br>${alert.msg}`);
 }
 
 function locateMe() {
   navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude: lat, longitude: lon } = pos.coords;
-    map.setView([lat, lon], 15);
+    const {latitude:lat, longitude:lon} = pos.coords;
+    map.setView([lat,lon],15);
     if (myMarker) map.removeLayer(myMarker);
     const icon = L.divIcon({
-      html: `<div style="width:14px;height:14px;border-radius:50%;background:#00ff88;border:2px solid #fff;box-shadow:0 0 10px #00ff88"></div>`,
+      html:`<div style="width:14px;height:14px;border-radius:50%;background:#00ff88;border:2px solid #fff;box-shadow:0 0 10px #00ff88"></div>`,
       iconSize:[14,14], iconAnchor:[7,7]
     });
-    myMarker = L.marker([lat, lon], {icon}).addTo(map).bindPopup("YOU ARE HERE").openPopup();
+    myMarker = L.marker([lat,lon],{icon}).addTo(map).bindPopup("YOU ARE HERE").openPopup();
     showToast("✓ Location found");
   }, () => showToast("⚠ Location not available"));
 }
 
-// Initialize map when map tab first opens
-document.querySelector('[onclick*="map"]').addEventListener('click', () => {
-  setTimeout(() => { if (!map) initMap(); map && map.invalidateSize(); }, 100);
-});
-
 // ============================================================
 //  RESOURCES
 // ============================================================
-
 function updateResourceUI(res) {
-  const update = (key, emoji) => {
+  ['water','food','medical'].forEach(key => {
     const v = res[key];
     const color = v >= 60 ? 'var(--green)' : v >= 30 ? 'var(--yellow)' : 'var(--red)';
     const label = v >= 60 ? 'Stable' : v >= 30 ? 'Low — Monitor Closely' : 'CRITICAL — Immediate Action';
-    document.getElementById(`${key}-pct`).textContent = v + '%';
-    document.getElementById(`${key}-sub`).textContent = label;
-    document.getElementById(`${key}-bar`).style.width = v + '%';
-    document.getElementById(`${key}-bar`).style.background = color;
+    document.getElementById(`${key}-pct`).textContent       = v + '%';
+    document.getElementById(`${key}-sub`).textContent       = label;
+    document.getElementById(`${key}-bar`).style.width       = v + '%';
+    document.getElementById(`${key}-bar`).style.background  = color;
     if (key === 'water') {
-      document.getElementById('stat-water').textContent = v + '%';
-      document.getElementById('stat-water').style.color = color;
+      document.getElementById('stat-water').textContent    = v + '%';
+      document.getElementById('stat-water').style.color   = color;
     }
-  };
-  update('water');
-  update('food');
-  update('medical');
+  });
 }
 
 async function updateResource(key, value) {
-  await showPopup();  // ← ADD THIS LINE
+  await showPopup(); // ← POPUP FIRES HERE, action waits
+
   const body = {};
   body[key] = parseInt(value);
-  const result = await fetchJSON("/resources", "POST", body);
+  const result = await fetchJSON("/resources","POST",body);
   if (result) showToast(`✓ ${key} updated to ${value}%`);
 }
 
 // ============================================================
 //  SURVIVORS
 // ============================================================
-
 async function checkIn(status) {
-  await showPopup();  // ← ADD THIS LINE
-  const name = (document.getElementById('my-name').value || 'UNKNOWN').trim().toUpperCase();
-  const zone = (document.getElementById('my-zone').value || '?').trim().toUpperCase();
-  const result = await fetchJSON("/survivors", "POST", { name, status, zone });
+  await showPopup(); // ← POPUP FIRES HERE, action waits
+
+  const name = (document.getElementById('my-name').value||'UNKNOWN').trim().toUpperCase();
+  const zone = (document.getElementById('my-zone').value||'?').trim().toUpperCase();
+  const result = await fetchJSON("/survivors","POST",{name,status,zone});
   if (result) showToast(`✓ Checked in as ${name} — ${status.toUpperCase()}`);
 }
 
 function updateSurvivorUI(survs) {
   document.getElementById('stat-survivors').textContent = survs.length;
-  document.getElementById('stat-need').textContent = survs.filter(s=>s.status==='need').length;
-
+  document.getElementById('stat-need').textContent      = survs.filter(s=>s.status==='need').length;
   const list = document.getElementById('survivor-list');
   list.innerHTML = '';
   survs.forEach(s => {
@@ -775,23 +799,19 @@ function updateSurvivorUI(survs) {
 // ============================================================
 //  HERBS
 // ============================================================
-
 async function loadHerbs() {
   const data = await fetchJSON("/herbs");
-  if (data) {
-    allHerbs = data;
-    renderHerbs(allHerbs);
-  }
+  if (data) { allHerbs = data; renderHerbs(allHerbs); }
 }
 
 function renderHerbs(herbs) {
   const list = document.getElementById('herb-list');
   list.innerHTML = '';
-  if (herbs.length === 0) {
+  if (!herbs.length) {
     list.innerHTML = '<div style="color:var(--dim);font-size:0.75rem">No results found.</div>';
     return;
   }
-  herbs.forEach((h, i) => {
+  herbs.forEach(h => {
     const el = document.createElement('div');
     el.className = 'herb-card';
     el.innerHTML = `
@@ -799,14 +819,15 @@ function renderHerbs(herbs) {
         <span class="herb-name">${h.name}</span>
         <span class="herb-local">${h.localName}</span>
       </div>
-      <div class="herb-tags">
-        ${h.treats.map(t=>`<span class="herb-tag">${t}</span>`).join('')}
-      </div>
+      <div class="herb-tags">${h.treats.map(t=>`<span class="herb-tag">${t}</span>`).join('')}</div>
       <div class="herb-detail">
         <div class="herb-row"><div class="herb-row-lbl">How to use</div>${h.how}</div>
         <div class="herb-row"><div class="herb-row-lbl">Where to find</div>${h.found}</div>
         ${h.warning ? `<div class="herb-warn">⚠ ${h.warning}</div>` : ''}
-        <div class="herb-row" style="margin-top:6px"><div class="herb-row-lbl">Safety</div><span class="severity-${h.severity}">${h.severity.toUpperCase()}</span></div>
+        <div class="herb-row" style="margin-top:6px">
+          <div class="herb-row-lbl">Safety</div>
+          <span class="severity-${h.severity}">${h.severity.toUpperCase()}</span>
+        </div>
       </div>`;
     el.onclick = () => el.classList.toggle('open');
     list.appendChild(el);
@@ -815,28 +836,21 @@ function renderHerbs(herbs) {
 
 function filterHerbs(query) {
   const q = query.toLowerCase();
-  const filtered = allHerbs.filter(h =>
+  renderHerbs(allHerbs.filter(h =>
     h.name.toLowerCase().includes(q) ||
     h.localName.toLowerCase().includes(q) ||
     h.treats.some(t => t.toLowerCase().includes(q))
-  );
-  renderHerbs(filtered);
+  ));
 }
-
-// Load herbs when tab opens
-document.querySelector('[onclick*="herbs"]').addEventListener('click', () => {
-  if (allHerbs.length === 0) loadHerbs();
-});
 
 // ============================================================
 //  CHAOS EVENT
 // ============================================================
-
 async function triggerChaos() {
-  await showPopup();  // ← ADD THIS LINE
-  const result = await fetchJSON("/chaos", "POST");
-  if (!result) { showToast("⚠ Server not responding"); return; }
+  await showPopup(); // ← POPUP FIRES HERE, action waits
 
+  const result = await fetchJSON("/chaos","POST");
+  if (!result) { showToast("⚠ Server not responding"); return; }
   const banner = document.getElementById('chaos-banner');
   banner.textContent = `⚠ CHAOS: ${result.event.msg} — CLICK TO DISMISS ⚠`;
   banner.classList.add('show');
@@ -845,25 +859,24 @@ async function triggerChaos() {
 }
 
 // ============================================================
-//  TAB SWITCHING
+//  TABS
 // ============================================================
-
 function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t  => t.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('view-' + name).classList.add('active');
-  if (name === 'map' && !map) setTimeout(initMap, 100);
-  if (name === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
+  document.getElementById('view-'+name).classList.add('active');
+  if (name==='map' && !map) setTimeout(initMap,100);
+  if (name==='map' &&  map) setTimeout(()=>map.invalidateSize(),100);
+  if (name==='herbs' && allHerbs.length===0) loadHerbs();
 }
 
 // ============================================================
-//  TOAST NOTIFICATION
+//  TOAST
 // ============================================================
-
 function showToast(msg) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
+  const ex = document.querySelector('.toast');
+  if (ex) ex.remove();
   const t = document.createElement('div');
   t.className = 'toast';
   t.textContent = msg;
@@ -872,127 +885,9 @@ function showToast(msg) {
 }
 
 // ============================================================
-//  RANDOM POPUP INTERRUPTION SYSTEM
-//  Call: await showPopup()  before any action.
-//  The action pauses until the user clicks dismiss.
+//  START
 // ============================================================
-
-const POPUPS = [
-  {
-    tag: "// SYSTEM WARNING",
-    title: "MEMORY CORRUPTION DETECTED",
-    body: "Sector 7 relay buffer has degraded. Your transmission may be logged by hostile factions. Proceed at your own risk. The grid does not guarantee delivery.",
-    dismiss: "UNDERSTOOD — TRANSMIT ANYWAY"
-  },
-  {
-    tag: "// FACTION ALERT",
-    title: "UNKNOWN SIGNAL INTERCEPTED",
-    body: "A third-party node is scanning this frequency. Identity unverified. Possible hostile reconnaissance. Your coordinates may be exposed upon broadcast.",
-    dismiss: "IGNORE THREAT — CONTINUE"
-  },
-  {
-    tag: "// SUPPLY SHORTAGE",
-    title: "BANDWIDTH RATION EXCEEDED",
-    body: "You have consumed 94% of your daily transmission quota. The Council has flagged your node for audit. This action will be recorded in the ledger.",
-    dismiss: "SUBMIT TO THE LEDGER"
-  },
-  {
-    tag: "// CRYPTIC MESSAGE",
-    title: "THE WATCHER SEES YOU",
-    body: "Node 7-GAMMA has been observing your activity since 03:41. It has not identified itself. It has not left. Do you still wish to proceed?",
-    dismiss: "YES. LET IT WATCH."
-  },
-  {
-    tag: "// INFRASTRUCTURE FAILURE",
-    title: "RELAY NODE UNSTABLE",
-    body: "The nearest mesh relay is running at 12% capacity. Packet loss is at 67%. Your message may arrive corrupted, duplicated, or not at all.",
-    dismiss: "SEND IT ANYWAY"
-  },
-  {
-    tag: "// PROTOCOL BREACH",
-    title: "AUTHENTICATION EXPIRED",
-    body: "Your survivor token was issued 6 days ago. Central registry is offline and cannot reissue. You are operating on borrowed clearance.",
-    dismiss: "CONTINUE ON BORROWED TIME"
-  },
-  {
-    tag: "// RESOURCE ALERT",
-    title: "WATER TABLE CRITICALLY LOW",
-    body: "Hydrological sensors in Zone C4 are reading 8%. At current consumption, this zone has 14 hours of supply remaining. Rationing is not optional.",
-    dismiss: "ACKNOWLEDGED"
-  },
-  {
-    tag: "// SYSTEM MESSAGE",
-    title: "WHO AUTHORISED THIS?",
-    body: "This action requires clearance level DELTA. You hold clearance level GAMMA. The difference is one letter. Proceed and this will be noted.",
-    dismiss: "NOTE IT. I'M PROCEEDING."
-  },
-  {
-    tag: "// PHANTOM SIGNAL",
-    title: "ECHO FROM A DEAD NODE",
-    body: "Node B7 has been offline for 9 days. It just responded to a ping. No survivors have been reported in that sector. The signal said: 'still here'.",
-    dismiss: "CLOSE AND DON'T THINK ABOUT IT"
-  },
-  {
-    tag: "// DUMB SYSTEM FAILURE",
-    title: "ERROR CODE: UNKNOWN ERROR",
-    body: "The system has encountered an error it cannot describe. The logs show only the word 'NO' repeated 847 times. Diagnostics have been disabled.",
-    dismiss: "OVERRIDE DIAGNOSTICS"
-  },
-  {
-    tag: "// FACTION BROADCAST",
-    title: "THE COUNCIL IS WATCHING",
-    body: "Sector broadcast quotas have been reinstated effective immediately. Excessive communication is classified as hoarding. This is your first warning.",
-    dismiss: "THIS IS NOT HOARDING"
-  },
-  {
-    tag: "// POWER WARNING",
-    title: "GENERATOR FUEL AT 3%",
-    body: "The node powering this mesh has 3% fuel remaining. Estimated uptime: 22 minutes. Your action will consume approximately 0.4% of remaining capacity.",
-    dismiss: "USE THE 0.4%"
-  }
-];
-
-let lastPopupIndex = -1;  // prevents same popup twice in a row
-
-function showPopup() {
-  /**
-   * Shows a random popup and returns a Promise.
-   * The Promise only resolves when the user clicks dismiss.
-   * This means: await showPopup() pauses everything until dismissed.
-   */
-  return new Promise((resolve) => {
-
-    // Pick a random popup — never the same one twice in a row
-    let index;
-    do {
-      index = Math.floor(Math.random() * POPUPS.length);
-    } while (index === lastPopupIndex);
-    lastPopupIndex = index;
-
-    const p = POPUPS[index];
-
-    // Fill in the popup content
-    document.getElementById('popup-tag').textContent    = p.tag;
-    document.getElementById('popup-title').textContent  = p.title;
-    document.getElementById('popup-body').textContent   = p.body;
-    document.getElementById('popup-dismiss').textContent = p.dismiss;
-
-    // Show the overlay
-    const overlay = document.getElementById('popup-overlay');
-    overlay.style.display = 'flex';
-
-    // When dismiss button is clicked — hide popup and let the action continue
-    document.getElementById('popup-dismiss').onclick = () => {
-      overlay.style.display = 'none';
-      resolve();  // this is what "unpauses" the action
-    };
-  });
-}
-
-// ============================================================
-//  INIT — runs on page load
-// ============================================================
-pollServer();      // start polling immediately
+pollServer();
 </script>
 </body>
 </html>
